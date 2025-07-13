@@ -9,7 +9,7 @@ A combination of commonly use tools, in the terminal.
 2. Install the tool:
 
 ```shell
-go install github.com/ducthuy-ng/devtoys-tui
+go install github.com/ducthuy-ng/devtoys-tui@latest
 ```
 
 3. Use the tool:

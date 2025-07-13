@@ -3,18 +3,30 @@ package models
 import (
 	"encoding/base64"
 
-	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/atotto/clipboard"
+	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ducthuy-ng/devtoys-tui/shared"
 )
 
 type Base64EncryptSubprogram struct {
-	textInput   textinput.Model
-	encodedText string
+	inputTextArea textarea.Model
+	encodedText   string
+
+	keys shared.KeyMap
+	help help.Model
 }
 
 func (b *Base64EncryptSubprogram) Init() tea.Cmd {
-	b.textInput = textinput.New()
-	b.textInput.Focus()
+	b.inputTextArea = textarea.New()
+	b.inputTextArea.Focus()
+
+	b.keys = shared.GetDefaultKeyMap()
+	b.help = help.New()
+
+	b.encodedText = ""
 
 	return nil
 }
@@ -22,43 +34,59 @@ func (b *Base64EncryptSubprogram) Init() tea.Cmd {
 func (b *Base64EncryptSubprogram) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.Type {
+		switch {
 
-		case tea.KeyEsc:
+		case key.Matches(msg, b.keys.Copy):
+			err := clipboard.WriteAll(b.encodedText)
+			if err != nil {
+				panic(err)
+			}
+		case key.Matches(msg, b.keys.Quit):
 			return b, tea.Quit
 		}
-
 	}
 
 	var cmd tea.Cmd
-	b.textInput, cmd = b.textInput.Update(msg)
-	b.encodedText = base64.StdEncoding.EncodeToString([]byte(b.textInput.Value()))
+	b.inputTextArea, cmd = b.inputTextArea.Update(msg)
+	b.encodedText = base64.StdEncoding.EncodeToString([]byte(b.inputTextArea.Value()))
 	return b, cmd
 }
 
 func (b *Base64EncryptSubprogram) View() string {
 	view := "Base64 Encrypt Subprogram\n\n"
-	view += "Enter text to encode:\n> " + b.textInput.Value() + "\n"
+
+	view += b.inputTextArea.View()
+	view += "\n\n"
 
 	if b.encodedText == "" {
 		view += "Encoded text:\n> "
 	} else {
 		view += "Encoded text:\n> " + b.encodedText
 	}
+	view += "\n\n"
 
-	view += "\n\nPress Esc to exit."
+	view += b.help.View(&b.keys)
+
 	return view
 }
 
 /* ============================================ */
 type Base64DecryptSubprogram struct {
-	textInput   textinput.Model
-	decodedText string
+	inputTextArea  textarea.Model
+	resultTextArea textarea.Model
+
+	keys shared.KeyMap
+	help help.Model
 }
 
 func (b *Base64DecryptSubprogram) Init() tea.Cmd {
-	b.textInput = textinput.New()
-	b.textInput.Focus()
+	b.inputTextArea = textarea.New()
+	b.inputTextArea.Focus()
+
+	b.resultTextArea = textarea.New()
+
+	b.keys = shared.GetDefaultKeyMap()
+	b.help = help.New()
 
 	return nil
 }
@@ -66,35 +94,40 @@ func (b *Base64DecryptSubprogram) Init() tea.Cmd {
 func (b *Base64DecryptSubprogram) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.Type {
-		case tea.KeyEnter:
-			return b, nil
-		case tea.KeyCtrlC, tea.KeyEsc:
+		switch {
+
+		case key.Matches(msg, b.keys.Copy):
+			err := clipboard.WriteAll(b.resultTextArea.Value())
+			if err != nil {
+				panic(err)
+			}
+		case key.Matches(msg, b.keys.Quit):
 			return b, tea.Quit
 		}
 	}
 
 	var cmd tea.Cmd
-	b.textInput, cmd = b.textInput.Update(msg)
-	decoded, err := base64.StdEncoding.DecodeString(b.textInput.Value())
+	b.inputTextArea, cmd = b.inputTextArea.Update(msg)
+	decoded, err := base64.StdEncoding.DecodeString(b.inputTextArea.Value())
 	if err == nil {
-		b.decodedText = string(decoded)
+		b.resultTextArea.SetValue(string(decoded))
 	} else {
-		b.decodedText = ""
+		b.resultTextArea.SetValue("")
 	}
 	return b, cmd
 }
 
 func (b *Base64DecryptSubprogram) View() string {
 	view := "Base64 Decrypt Subprogram\n\n"
-	view += "Enter text to decode:\n> " + b.textInput.Value() + "\n"
 
-	if b.decodedText == "" {
-		view += "Decoded text:\n> "
-	} else {
-		view += "Decoded text:\n> " + b.decodedText
-	}
+	view += b.inputTextArea.View()
+	view += "\n\n"
 
-	view += "\n\nPress Esc to exit."
+	view += "Decoded text:\n"
+	view += b.resultTextArea.View()
+	view += "\n\n"
+
+	view += b.help.View(&b.keys)
+
 	return view
 }
