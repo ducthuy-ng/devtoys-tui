@@ -34,6 +34,8 @@ type DevToysModel struct {
 	programStyle lipgloss.Style
 
 	currentSubprogram models.Subprogram // The currently active subprogram
+
+	latestWindowSizeMsg tea.WindowSizeMsg
 }
 
 func initialModel() DevToysModel {
@@ -57,6 +59,12 @@ func (m DevToysModel) Init() tea.Cmd {
 
 func (m DevToysModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.latestWindowSizeMsg = msg
+		if m.currentSubprogram != nil {
+			m.currentSubprogram.Update(msg)
+		}
+
 	case tea.KeyMsg:
 		if m.currentSubprogram != nil {
 			// Exit the program
@@ -76,6 +84,9 @@ func (m DevToysModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.Type == tea.KeyEnter {
 			m.currentSubprogram = m.featureList.SelectedItem().(DevToysModelFeatures).Subprogram
 			m.currentSubprogram.Init()
+
+			// When entering a subprogram, ensure that it receives the latest window size
+			m.currentSubprogram.Update(m.latestWindowSizeMsg)
 		}
 	}
 

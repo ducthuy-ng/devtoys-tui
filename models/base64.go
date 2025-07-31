@@ -33,6 +33,9 @@ func (b *Base64EncryptSubprogram) Init() tea.Cmd {
 
 func (b *Base64EncryptSubprogram) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		b.inputTextArea.SetWidth(msg.Width - 5)
+		b.inputTextArea.SetHeight(msg.Height - 10) // Reserve space for
 	case tea.KeyMsg:
 		switch {
 
@@ -93,6 +96,15 @@ func (b *Base64DecryptSubprogram) Init() tea.Cmd {
 
 func (b *Base64DecryptSubprogram) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+
+	case tea.WindowSizeMsg:
+		screenHeight := msg.Height
+
+		b.inputTextArea.SetWidth(msg.Width - 5)
+		b.inputTextArea.SetHeight(screenHeight/2 - 5)
+
+		b.resultTextArea.SetWidth(msg.Width - 5)
+		b.resultTextArea.SetHeight(screenHeight/2 - 5)
 	case tea.KeyMsg:
 		switch {
 
