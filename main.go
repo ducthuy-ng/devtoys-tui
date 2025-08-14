@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"github.com/ducthuy-ng/devtoys-tui/models"
+	"github.com/ducthuy-ng/devtoys-tui/models/formatter"
 )
 
 func main() {
@@ -45,6 +46,7 @@ func initialModel() DevToysModel {
 	items := []list.Item{
 		DevToysModelFeatures{title: "Base64 Encode", description: "Encode text to Base64", Subprogram: &models.Base64EncryptSubprogram{}},
 		DevToysModelFeatures{title: "Base64 Decode", description: "Decode Base64 to text", Subprogram: &models.Base64DecryptSubprogram{}},
+		DevToysModelFeatures{title: "JSON Formatter", description: "Format JSON text", Subprogram: &formatter.JsonFormatter{}},
 	}
 	model.featureList = list.New(items, list.NewDefaultDelegate(), 50, 20)
 	model.featureList.Title = "DevToys Features"
